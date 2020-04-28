@@ -1,7 +1,11 @@
 package com.danieldonato.webflux.controller;
 
+import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,8 +17,9 @@ import com.danieldonato.webflux.services.PlaylistService;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
-//@RestController
+@RestController
 @RequestMapping(value = "/playlist")
 public class PlaylistController {
 	
@@ -22,20 +27,27 @@ public class PlaylistController {
 	private PlaylistService service;
 	
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<Flux<Playlist>> findAll(){
+	public Flux<Playlist> findAll(){
 		Flux<Playlist> obj = service.findAll();
-		return ResponseEntity.ok().body(obj);
+		return obj;
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	public ResponseEntity<Mono<Playlist>> findById(@PathVariable String id){
+	public Mono<Playlist> findById(@PathVariable String id){
 		Mono<Playlist> obj = service.findById(id);
-		return ResponseEntity.ok().body(obj);
+		return obj;
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<Mono<Playlist>> save(@RequestBody Playlist obj){
+	public Mono<Playlist> save(@RequestBody Playlist obj){
 		Mono<Playlist> mono = service.save(obj);
-		return ResponseEntity.created(null).body(mono);
+		return mono;
+	}
+	
+	@GetMapping(value = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	public Flux<Tuple2<Long, Playlist>> getPlaylistByEvents() {
+		Flux<Long> interval = Flux.interval(Duration.ofSeconds(10));
+		Flux<Playlist> events = service.findAll();
+		return Flux.zip(interval, events);
 	}
 }
