@@ -24,7 +24,7 @@ public class Bootstrap implements CommandLineRunner {
 				.thenMany(Flux.just("Just It", "Sertanejo", "Rock Nacional")
 						.map(x -> new Playlist(UUID.randomUUID().toString(), x)).flatMap(playlistRepository::save))
 				.subscribe(System.out::println);
-
+		
 	}
 
 }
